@@ -1,0 +1,53 @@
+name: 'Upload SFTP & SSH'
+description: 'Upload Files to Server via SFTP and then Install dependencies via SSH'
+
+inputs:
+  IP:
+    description: 'sss'
+    required: true
+  USERNAME:
+    description: 'sss'
+    required: true
+  PASSWORD:
+    description: 'sss'
+    required: true
+  SSH:
+    description: 'sss'
+    required: true
+  SERVER_PORT:
+    description: Node Version Number
+    required: true
+  DEPLOY_PATH:
+    description: Path where the Project will be Deployed
+    required: true
+  
+runs:
+  using: 'composite'
+  steps: 
+          # Deploy Files to Server with sftp
+    - name: Deploy Files
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        username: ${{ inputs.USERNAME }}
+        server: ${{ inputs.IP }}
+        password: ${{ inputs.PASSWORD }}
+        ssh_private_key: ${{ inputs.SSH }} 
+        local_path: './*'
+        remote_path: ${{inputs.DEPLOY_PATH}}
+
+    - name: Test
+      run: echo "Hallo Welt"
+      shell: bash
+
+        # Connecting to Server over SSH and cd to path for App, install dependencies and then restart service
+    - name: Install Dependencies on Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ inputs.IP }}
+        username: ${{ inputs.USERNAME }}
+        password: ${{ inputs.PASSWORD }}
+        port: ${{inputs.PORT}}
+        script: |
+          cd /var/www/app
+          npm ci
+          pm2 restart 0
